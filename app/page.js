@@ -68,6 +68,7 @@ export default function NubidaMarket() {
       showToast('데이터를 불러오는 중 오류가 발생했습니다.');
     }
   };
+
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
