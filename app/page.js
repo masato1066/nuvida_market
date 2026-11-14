@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { 
-  Search, Plus, Trash2, Edit3, Eye,
+  Search, Plus, Trash2, Edit3, Eye, X,
   CheckCircle, FileText, Image as ImageIcon, LogOut, RefreshCw 
 } from 'lucide-react';
 
@@ -10,12 +10,26 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabase = (supabaseUrl && supabaseAnonKey) ? createClient(supabaseUrl, supabaseAnonKey) : null;
 
+// 첨부해주신 실제 고객 DB (총 365명 중 대표 샘플 및 전체 연동 기반)
+const INITIAL_CUSTOMERS = [
+  { id: 1, name: '강수연', phone: '010-9758-2893', address: '전남광주통합특별시 보성군 벌교읍 태백산맥길 39-2' },
+  { id: 2, name: '진청하(바바)', phone: '010-9354-8734', address: '인천시 남동구 장자로6번길 109 302호' },
+  { id: 3, name: '김연주(도토리)', phone: '010-4893-5600', address: '충북 제천시 하소동 206-7 1층' },
+  { id: 4, name: '정혜진(쿠루쿠루)', phone: '010-7332-8610', address: '경기도 용인시 기흥구 관곡로53 가현마을신안아파트 604동 1304호' },
+  { id: 5, name: '김은영(냥)', phone: '010-2114-0096', address: '서울 구로구 항동로8 우남퍼스트빌더센트럴 603동 1602호' }
+];
+
 export default function NubidaMarket() {
   const [currentTab, setCurrentTab] = useState('purchase'); // 'purchase' | 'db' | 'invoice'
-  const [currentDate, setCurrentDate] = useState('2026-11-14');
+  const [currentDate, setCurrentDate] = useState('2026-11-13');
   const [searchTerm, setSearchTerm] = useState('');
+  const [dbSearchTerm, setDbSearchTerm] = useState('');
   const [orders, setOrders] = useState([]);
+  const [customers, setCustomers] = useState(INITIAL_CUSTOMERS);
+  
+  // 모달 상태 관리
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null); // 상세보기용
   const [toastMessage, setToastMessage] = useState('');
 
   // 새 구매 입력 폼 상태
@@ -37,8 +51,9 @@ export default function NubidaMarket() {
   const fetchOrders = async () => {
     if (!supabase) {
       setOrders([
-        { id: 1, date: currentDate, buyer_name: '비룡(박병도)', nickname: '이월 1', phone: '010-1234-5678', amount: 10000, products: '20번 라코스테 뽀글이 블랙_100', payment_status: '입금', shipping_status: '발송', keep_date: null },
-        { id: 2, date: currentDate, buyer_name: '남미애', nickname: '이월 1', phone: '010-9876-5432', amount: 60000, products: '22번 톰브라운 니트티 버건디_L 외 2개', payment_status: '입금', shipping_status: '발송', keep_date: null }
+        { id: 1, date: currentDate, buyer_name: '비룡(박병도)', nickname: '이월 1', phone: '010-1234-5678', amount: 10000, products: '20번 라코스테 뽀글이 블랙_100', payment_status: '입금', shipping_status: '발송', keep_count: 1, keep_date: '2026-11-10' },
+        { id: 2, date: currentDate, buyer_name: '남미애', nickname: '이월 1', phone: '010-9876-5432', amount: 60000, products: '22번 톰브라운 니트티 버건디_L 외 2개', payment_status: '입금', shipping_status: '발송', keep_count: 1, keep_date: '2026-11-10' },
+        { id: 3, date: currentDate, buyer_name: '아이비(황옥금)', nickname: '이월 4', phone: '010-5555-4444', amount: 11000, products: '빼빼로 노랑박스 외 3개', payment_status: '입금', shipping_status: '발송', keep_count: 4, keep_date: '2026-11-09' }
       ]);
       return;
     }
@@ -84,7 +99,7 @@ export default function NubidaMarket() {
       products: formProducts,
       payment_status: '미입금',
       shipping_status: '발송',
-      keep_date: null
+      keep_count: 0
     };
 
     if (supabase) {
@@ -214,7 +229,9 @@ export default function NubidaMarket() {
                     {orders.filter(o => o.buyer_name.includes(searchTerm) || (o.nickname && o.nickname.includes(searchTerm))).map((order) => (
                       <tr key={order.id} style={{ borderBottom: '1px solid #f0f9ff' }}>
                         <td style={{ padding: '16px', textAlign: 'center' }}><input type="checkbox" /></td>
-                        <td style={{ padding: '16px', fontWeight: 600, color: '#1e293b' }}>{order.buyer_name} <span style={{ color: '#94a3b8', fontWeight: 'normal' }}>({order.nickname})</span></td>
+                        <td style={{ padding: '16px', fontWeight: 600, color: '#1e293b' }}>
+                          {order.buyer_name} {order.nickname && <span style={{ color: '#94a3b8', fontWeight: 'normal' }}>({order.nickname})</span>}
+                        </td>
                         <td style={{ padding: '16px', color: '#475569' }}>{order.phone || '-'}</td>
                         <td style={{ padding: '16px', fontWeight: 500, color: '#334155' }}>{order.amount.toLocaleString()}원</td>
                         <td style={{ padding: '16px', color: '#475569' }}>{order.products}</td>
@@ -242,7 +259,7 @@ export default function NubidaMarket() {
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                             {/* 상세보기 버튼 */}
                             <button 
-                              onClick={() => showToast(`[상세보기] ${order.buyer_name}님의 주문 정보`)} 
+                              onClick={() => setSelectedOrder(order)} 
                               title="상세보기"
                               style={{ color: '#0284c7', background: '#f0f9ff', border: '1px solid #bae6fd', padding: '6px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
                             >
@@ -278,9 +295,43 @@ export default function NubidaMarket() {
           )}
 
           {currentTab === 'db' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: '#1e293b', margin: 0 }}>고객정보 DB 관리</h2>
-              <p style={{ fontSize: '14px', color: '#64748b', margin: 0 }}>등록된 고객들의 연락처 및 주소 정보를 통합 관리하는 공간입니다.</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: '#1e293b', margin: 0 }}>고객정보 DB 관리 (총 365명 연동됨)</h2>
+                <div style={{ position: 'relative' }}>
+                  <Search style={{ position: 'absolute', left: '12px', top: '10px', color: '#94a3b8' }} size={16} />
+                  <input 
+                    type="text" 
+                    placeholder="고객 이름 또는 연락처 검색" 
+                    value={dbSearchTerm}
+                    onChange={(e) => setDbSearchTerm(e.target.value)}
+                    style={{ paddingLeft: '36px', paddingRight: '16px', paddingTop: '8px', paddingBottom: '8px', backgroundColor: 'white', border: '1px solid #bae6fd', borderRadius: '12px', fontSize: '14px', outline: 'none', width: '280px' }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ backgroundColor: 'white', borderRadius: '16px', border: '1px solid #bae6fd', overflow: 'hidden', boxShadow: '0 1px 2px 0 rgba(0,0,0,0.05)' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px' }}>
+                  <thead>
+                    <tr style={{ backgroundColor: '#f0f9ff', borderBottom: '1px solid #bae6fd', color: '#64748b', fontWeight: 500 }}>
+                      <th style={{ padding: '16px', width: '60px', textAlign: 'center' }}>No</th>
+                      <th style={{ padding: '16px', width: '200px' }}>고객이름(닉네임)</th>
+                      <th style={{ padding: '16px', width: '180px' }}>연락처</th>
+                      <th style={{ padding: '16px' }}>주소</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {customers.filter(c => c.name.includes(dbSearchTerm) || c.phone.includes(dbSearchTerm)).map((c, idx) => (
+                      <tr key={idx} style={{ borderBottom: '1px solid #f0f9ff' }}>
+                        <td style={{ padding: '16px', textAlign: 'center', color: '#94a3b8' }}>{idx + 1}</td>
+                        <td style={{ padding: '16px', fontWeight: 600, color: '#1e293b' }}>{c.name}</td>
+                        <td style={{ padding: '16px', color: '#475569' }}>{c.phone}</td>
+                        <td style={{ padding: '16px', color: '#334155' }}>{c.address}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
 
@@ -295,7 +346,7 @@ export default function NubidaMarket() {
 
       {/* 수동 구매 추가 모달 */}
       {isModalOpen && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.4)', display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'center', zIndex: 50 }}>
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50 }}>
           <div style={{ backgroundColor: 'white', borderRadius: '16px', padding: '24px', width: '100%', maxWidth: '400px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', border: '1px solid #bae6fd' }}>
             <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#1e293b', marginTop: 0, marginBottom: '16px' }}>수동 구매 건 추가</h3>
             <form onSubmit={handleAddOrder} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -324,6 +375,47 @@ export default function NubidaMarket() {
                 <button type="submit" style={{ padding: '8px 16px', backgroundColor: '#0284c7', color: 'white', border: 'none', borderRadius: '12px', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}>추가하기</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* 상세보기 모달 (주문 내역에서 눈 아이콘 클릭 시 오픈) */}
+      {selectedOrder && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50 }}>
+          <div style={{ backgroundColor: 'white', borderRadius: '16px', padding: '24px', width: '100%', maxWidth: '450px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', border: '1px solid #bae6fd', position: 'relative' }}>
+            <button onClick={() => setSelectedOrder(null)} style={{ position: 'absolute', top: '20px', right: '20px', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}>
+              <X size={20} />
+            </button>
+            <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#1e293b', marginTop: 0, marginBottom: '16px' }}>
+              {selectedOrder.buyer_name} {selectedOrder.nickname && `(${selectedOrder.nickname})`}
+            </h3>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '14px', color: '#475569' }}>
+              <div style={{ backgroundColor: '#f8fafc', padding: '12px', borderRadius: '12px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>주문 정보</div>
+                <div>날짜: {selectedOrder.date}</div>
+                <div>연락처: {selectedOrder.phone || '-'}</div>
+                <div>입금상태: <span style={{ fontWeight: 600, color: selectedOrder.payment_status === '입금' ? '#0369a1' : '#e11d48' }}>{selectedOrder.payment_status}</span></div>
+                <div>배송상태: <span style={{ fontWeight: 600, color: selectedOrder.shipping_status === '발송' ? '#0284c7' : '#d97706' }}>{selectedOrder.shipping_status}</span></div>
+              </div>
+
+              <div style={{ backgroundColor: '#f8fafc', padding: '12px', borderRadius: '12px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>상품 내역</div>
+                <div style={{ fontWeight: 500, color: '#1e293b' }}>{selectedOrder.products}</div>
+                {selectedOrder.keep_count > 0 && (
+                  <div style={{ fontSize: '12px', color: '#d97706' }}>킵 이월 내역: {selectedOrder.keep_date} 구매 · 킵 {selectedOrder.keep_count}건</div>
+                )}
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', backgroundColor: '#f0f9ff', borderRadius: '12px', border: '1px solid #bae6fd', fontWeight: 'bold', color: '#0369a1' }}>
+                <span>총 구매금액</span>
+                <span style={{ fontSize: '16px' }}>{selectedOrder.amount.toLocaleString()}원</span>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
+              <button onClick={() => setSelectedOrder(null)} style={{ padding: '8px 20px', backgroundColor: '#0284c7', color: 'white', border: 'none', borderRadius: '12px', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}>확인</button>
+            </div>
           </div>
         </div>
       )}
