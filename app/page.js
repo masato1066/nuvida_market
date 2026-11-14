@@ -10,6 +10,14 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabase = (supabaseUrl && supabaseAnonKey) ? createClient(supabaseUrl, supabaseAnonKey) : null;
 
+const INITIAL_ORDERS = [
+  { id: 1, date: '2026-11-13', buyer_name: '비룡(박병도)', nickname: '이월 1', phone: '010-1234-5678', amount: 10000, products: '20번 라코스테 뽀글이 블랙_100', payment_status: '입금', shipping_status: '발송' },
+  { id: 2, date: '2026-11-13', buyer_name: '남미애', nickname: '이월 1', phone: '010-9876-5432', amount: 60000, products: '22번 톰브라운 니트티 버건디_L 외 2개', payment_status: '입금', shipping_status: '발송' },
+  { id: 3, date: '2026-11-13', buyer_name: '아이비(황옥금)', nickname: '이월 4', phone: '010-5555-4444', amount: 11000, products: '빼빼로 노랑박스 외 3개', payment_status: '입금', shipping_status: '발송' },
+  { id: 4, date: '2026-11-13', buyer_name: '삼냥이와꼼지(조수경)', nickname: '이월 2', phone: '010-0000-0000', amount: 20000, products: '디즈니 파우치 베이지 외 1개', payment_status: '입금', shipping_status: '발송' },
+  { id: 5, date: '2026-11-13', buyer_name: '밤비노(정창민)', nickname: '이월 1', phone: '010-0000-0000', amount: 18000, products: '다즈니 힙섹 레드', payment_status: '입금', shipping_status: '발송' }
+];
+
 const INITIAL_CUSTOMERS = [
   { id: 1, name: '강수연', phone: '010-9758-2893', address: '전남광주통합특별시 보성군 벌교읍 태백산맥길 39-2' },
   { id: 2, name: '진청하(바바)', phone: '010-9354-8734', address: '인천시 남동구 장자로6번길 109 302호' },
@@ -19,12 +27,12 @@ const INITIAL_CUSTOMERS = [
 ];
 
 export default function NubidaMarket() {
-  const [isMounted, setIsMounted] = useState(false);
+  const [isClient, setIsClient] = useState(false);
   const [currentTab, setCurrentTab] = useState('purchase');
   const [currentDate, setCurrentDate] = useState('2026-11-13');
   const [searchTerm, setSearchTerm] = useState('');
   const [dbSearchTerm, setDbSearchTerm] = useState('');
-  const [orders, setOrders] = useState([]);
+  const [orders, setOrders] = useState(INITIAL_ORDERS);
   const [customers, setCustomers] = useState(INITIAL_CUSTOMERS);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -38,7 +46,7 @@ export default function NubidaMarket() {
   const [formProducts, setFormProducts] = useState('');
 
   useEffect(() => {
-    setIsMounted(true);
+    setIsClient(true);
     fetchOrders();
   }, [currentDate]);
 
@@ -48,15 +56,7 @@ export default function NubidaMarket() {
   };
 
   const fetchOrders = async () => {
-    if (!supabase) {
-      setOrders([
-        { id: 1, date: currentDate, buyer_name: '비룡(박병도)', nickname: '이월 1', phone: '010-1234-5678', amount: 10000, products: '20번 라코스테 뽀글이 블랙_100', payment_status: '입금', shipping_status: '발송', keep_count: 1, keep_date: '2026-11-10' },
-        { id: 2, date: currentDate, buyer_name: '남미애', nickname: '이월 1', phone: '010-9876-5432', amount: 60000, products: '22번 톰브라운 니트티 버건디_L 외 2개', payment_status: '입금', shipping_status: '발송', keep_count: 1, keep_date: '2026-11-10' },
-        { id: 3, date: currentDate, buyer_name: '아이비(황옥금)', nickname: '이월 4', phone: '010-5555-4444', amount: 11000, products: '빼빼로 노랑박스 외 3개', payment_status: '입금', shipping_status: '발송', keep_count: 4, keep_date: '2026-11-09' }
-      ]);
-      return;
-    }
-
+    if (!supabase) return;
     try {
       const { data, error } = await supabase
         .from('orders')
@@ -64,65 +64,61 @@ export default function NubidaMarket() {
         .eq('date', currentDate);
       
       if (error) throw error;
-      setOrders(data || []);
+      if (data && data.length > 0) {
+        setOrders(data);
+      }
     } catch (err) {
       console.error(err);
-      showToast('데이터를 불러오는 중 오류가 발생했습니다.');
     }
   };
 
-  const handleFileUpload = async (e) => {
+  const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    try {
-      const XLSX = await import('xlsx');
-      const reader = new FileReader();
-      
-      reader.onload = (evt) => {
-        try {
-          const data = new Uint8Array(evt.target.result);
-          const workbook = XLSX.read(data, { type: 'array' });
-          const sheetName = workbook.SheetNames[0];
-          const worksheet = workbook.Sheets[sheetName];
-          const json = XLSX.utils.sheet_to_json(worksheet);
-          
-          const formattedOrders = json.map((item, index) => ({
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const text = evt.target.result;
+        const lines = text.split('\n').filter(Boolean);
+        
+        const newOrders = lines.slice(1).map((line, index) => {
+          const cols = line.split(',');
+          return {
             id: Date.now() + index,
-            date: item.date || currentDate,
-            buyer_name: item.buyer_name || item.구매자 || item.이름 || '미확인',
-            nickname: item.nickname || item.닉네임 || '',
-            phone: item.phone || item.연락처 || '',
-            amount: Number(item.amount || item.구매금액 || item.금액 || 0),
-            products: item.products || item.제품정보 || item.상품명 || '상품 정보 없음',
-            payment_status: item.payment_status || item.입금상태 || '미입금',
-            shipping_status: item.shipping_status || item.배송상태 || '발송',
-          }));
+            date: currentDate,
+            buyer_name: cols[0]?.trim() || '미확인',
+            nickname: cols[1]?.trim() || '',
+            phone: cols[2]?.trim() || '',
+            amount: Number(cols[3]?.replace(/[^0-9]/g, '')) || 0,
+            products: cols[4]?.trim() || '상품 정보 없음',
+            payment_status: '미입금',
+            shipping_status: '발송',
+          };
+        });
 
-          setOrders((prev) => [...formattedOrders, ...prev]);
-          showToast(`엑셀 업로드 성공! (${formattedOrders.length}건 추가됨)`);
-        } catch (err) {
-          console.error(err);
-          showToast('엑셀 파일을 읽는 중 오류가 발생했습니다.');
+        if (newOrders.length > 0) {
+          setOrders((prev) => [...newOrders, ...prev]);
+          showToast(`파일 업로드 성공! (${newOrders.length}건 추가됨)`);
+        } else {
+          showToast('업로드된 파일에 데이터가 없습니다.');
         }
-      };
-      reader.readAsArrayBuffer(file);
-    } catch (err) {
-      console.error(err);
-      showToast('엑셀 라이브러리를 로드하지 못했습니다.');
-    }
+      } catch (err) {
+        console.error(err);
+        showToast('파일을 읽는 중 오류가 발생했습니다.');
+      }
+    };
+    reader.readAsText(file);
   };
 
   const handleDateChange = (days) => {
     const d = new Date(currentDate);
     d.setDate(d.getDate() + days);
-    const nextDateStr = d.toISOString().split('T')[0];
-    setCurrentDate(nextDateStr);
+    setCurrentDate(d.toISOString().split('T')[0]);
   };
 
   const handleStatusChange = async (id, field, value) => {
-    const updated = orders.map(o => o.id === id ? { ...o, [field]: value } : o);
-    setOrders(updated);
+    setOrders(prev => prev.map(o => o.id === id ? { ...o, [field]: value } : o));
     if (supabase) {
       await supabase.from('orders').update({ [field]: value }).eq('id', id);
     }
@@ -132,6 +128,7 @@ export default function NubidaMarket() {
   const handleAddOrder = async (e) => {
     e.preventDefault();
     const newOrder = {
+      id: Date.now(),
       date: currentDate,
       buyer_name: formBuyer,
       nickname: formNickname,
@@ -140,25 +137,18 @@ export default function NubidaMarket() {
       products: formProducts,
       payment_status: '미입금',
       shipping_status: '발송',
-      keep_count: 0
     };
 
     if (supabase) {
-      const { data, error } = await supabase.from('orders').insert([newOrder]).select();
-      if (!error && data) {
-        setOrders([...orders, data[0]]);
-      }
-    } else {
-      setOrders([...orders, { ...newOrder, id: Date.now() }]);
+      await supabase.from('orders').insert([newOrder]);
     }
 
+    setOrders(prev => [newOrder, ...prev]);
     setIsModalOpen(false);
     setFormBuyer(''); setFormNickname(''); setFormPhone(''); setFormAmount(''); setFormProducts('');
-    showToast('새 구매 건이 등록되었습니다.');
+    showToast('수동 구매 건이 추가되었습니다.');
   };
-
-  // 서버 렌더링 시점과 클라이언트 마운트 시점의 불일치를 막기 위한 안전 장치
-  if (!isMounted) {
+  if (!isClient) {
     return <div style={{ padding: '40px', textAlign: 'center', color: '#0284c7' }}>로딩 중...</div>;
   }
 
@@ -249,8 +239,8 @@ export default function NubidaMarket() {
                 <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: '#1e293b', margin: 0 }}>통합 구매관리 리스트 ({orders.length}건)</h2>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <label style={{ padding: '8px 16px', backgroundColor: 'white', border: '1px solid #bae6fd', color: '#0369a1', borderRadius: '12px', fontSize: '14px', fontWeight: 500, cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }}>
-                    엑셀 업로드
-                    <input type="file" accept=".xlsx, .xls" style={{ display: 'none' }} onChange={handleFileUpload} />
+                    파일 업로드
+                    <input type="file" accept=".csv, .txt, .xlsx" style={{ display: 'none' }} onChange={handleFileUpload} />
                   </label>
                   <button style={{ padding: '8px 16px', backgroundColor: 'white', border: '1px solid #bae6fd', color: '#0369a1', borderRadius: '12px', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}>양식 다운로드</button>
                   <button style={{ padding: '8px 16px', backgroundColor: 'white', border: '1px solid #bae6fd', color: '#0369a1', borderRadius: '12px', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}>리스트 다운로드</button>
@@ -284,12 +274,12 @@ export default function NubidaMarket() {
                         
                         <td style={{ padding: '16px' }}>
                           <select 
-                            value={order.payment_status} 
+                            value={order.payment_status || '미입금'} 
                             onChange={(e) => handleStatusChange(order.id, 'payment_status', e.target.value)}
                             style={{ 
                               padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 600, border: '1px solid #bae6fd', 
-                              backgroundColor: order.payment_status === '입금' ? '#f0f9ff' : order.payment_status === '주문취소' ? '#f1f5f9' : '#fff1f2', 
-                              color: order.payment_status === '입금' ? '#0369a1' : order.payment_status === '주문취소' ? '#64748b' : '#e11d48' 
+                              backgroundColor: order.payment_status === '입금' ? '#f0f9ff' : '#fff1f2', 
+                              color: order.payment_status === '입금' ? '#0369a1' : '#e11d48' 
                             }}
                           >
                             <option value="입금">입금완료</option>
@@ -300,12 +290,12 @@ export default function NubidaMarket() {
 
                         <td style={{ padding: '16px' }}>
                           <select 
-                            value={order.shipping_status} 
+                            value={order.shipping_status || '발송'} 
                             onChange={(e) => handleStatusChange(order.id, 'shipping_status', e.target.value)}
                             style={{ 
                               padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 600, border: '1px solid #bae6fd', 
-                              backgroundColor: order.shipping_status === '발송' ? '#e0f2fe' : order.shipping_status === '미발송' ? '#f1f5f9' : '#fef3c7', 
-                              color: order.shipping_status === '발송' ? '#0284c7' : order.shipping_status === '미발송' ? '#64748b' : '#d97706' 
+                              backgroundColor: order.shipping_status === '발송' ? '#e0f2fe' : '#fef3c7', 
+                              color: order.shipping_status === '발송' ? '#0284c7' : '#d97706' 
                             }}
                           >
                             <option value="발송">발송 (익일 자동)</option>
@@ -356,123 +346,4 @@ export default function NubidaMarket() {
                 <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: '#1e293b', margin: 0 }}>고객정보 DB 관리 (총 365명 연동됨)</h2>
                 <div style={{ position: 'relative' }}>
                   <Search style={{ position: 'absolute', left: '12px', top: '10px', color: '#94a3b8' }} size={16} />
-                  <input 
-                    type="text" 
-                    placeholder="고객 이름 또는 연락처 검색" 
-                    value={dbSearchTerm}
-                    onChange={(e) => setDbSearchTerm(e.target.value)}
-                    style={{ paddingLeft: '36px', paddingRight: '16px', paddingTop: '8px', paddingBottom: '8px', backgroundColor: 'white', border: '1px solid #bae6fd', borderRadius: '12px', fontSize: '14px', outline: 'none', width: '280px' }}
-                  />
-                </div>
-              </div>
-
-              <div style={{ backgroundColor: 'white', borderRadius: '16px', border: '1px solid #bae6fd', overflow: 'hidden', boxShadow: '0 1px 2px 0 rgba(0,0,0,0.05)' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px' }}>
-                  <thead>
-                    <tr style={{ backgroundColor: '#f0f9ff', borderBottom: '1px solid #bae6fd', color: '#64748b', fontWeight: 500 }}>
-                      <th style={{ padding: '16px', width: '60px', textAlign: 'center' }}>No</th>
-                      <th style={{ padding: '16px', width: '200px' }}>고객이름(닉네임)</th>
-                      <th style={{ padding: '16px', width: '180px' }}>연락처</th>
-                      <th style={{ padding: '16px' }}>주소</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {customers.filter(c => (c.name || '').includes(dbSearchTerm) || (c.phone || '').includes(dbSearchTerm)).map((c, idx) => (
-                      <tr key={idx} style={{ borderBottom: '1px solid #f0f9ff' }}>
-                        <td style={{ padding: '16px', textAlign: 'center', color: '#94a3b8' }}>{idx + 1}</td>
-                        <td style={{ padding: '16px', fontWeight: 600, color: '#1e293b' }}>{c.name}</td>
-                        <td style={{ padding: '16px', color: '#475569' }}>{c.phone}</td>
-                        <td style={{ padding: '16px', color: '#334155' }}>{c.address}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {currentTab === 'invoice' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: '#1e293b', margin: 0 }}>송장 · 이미지 발급</h2>
-              <p style={{ fontSize: '14px', color: '#64748b', margin: 0 }}>CJ대한통운 송장 엑셀 발급 및 고객별 전송 이미지를 관리합니다.</p>
-            </div>
-          )}
-        </div>
-      </main>
-
-      {isModalOpen && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50 }}>
-          <div style={{ backgroundColor: 'white', borderRadius: '16px', padding: '24px', width: '100%', maxWidth: '400px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', border: '1px solid #bae6fd' }}>
-            <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#1e293b', marginTop: 0, marginBottom: '16px' }}>수동 구매 건 추가</h3>
-            <form onSubmit={handleAddOrder} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#64748b', marginBottom: '4px' }}>구매자 이름</label>
-                <input type="text" required value={formBuyer} onChange={e => setFormBuyer(e.target.value)} style={{ width: '100%', padding: '8px 12px', border: '1px solid #bae6fd', borderRadius: '12px', fontSize: '14px', outline: 'none' }} placeholder="예: 홍길동" />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#64748b', marginBottom: '4px' }}>닉네임</label>
-                <input type="text" required value={formNickname} onChange={e => setFormNickname(e.target.value)} style={{ width: '100%', padding: '8px 12px', border: '1px solid #bae6fd', borderRadius: '12px', fontSize: '14px', outline: 'none' }} placeholder="예: 길동이" />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#64748b', marginBottom: '4px' }}>연락처</label>
-                <input type="text" value={formPhone} onChange={e => setFormPhone(e.target.value)} style={{ width: '100%', padding: '8px 12px', border: '1px solid #bae6fd', borderRadius: '12px', fontSize: '14px', outline: 'none' }} placeholder="010-0000-0000" />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#64748b', marginBottom: '4px' }}>구매금액</label>
-                <input type="number" value={formAmount} onChange={e => setFormAmount(e.target.value)} style={{ width: '100%', padding: '8px 12px', border: '1px solid #bae6fd', borderRadius: '12px', fontSize: '14px', outline: 'none' }} placeholder="10000" />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#64748b', marginBottom: '4px' }}>제품정보</label>
-                <input type="text" value={formProducts} onChange={e => setFormProducts(e.target.value)} style={{ width: '100%', padding: '8px 12px', border: '1px solid #bae6fd', borderRadius: '12px', fontSize: '14px', outline: 'none' }} placeholder="상품명 외 1개" />
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '16px' }}>
-                <button type="button" onClick={() => setIsModalOpen(false)} style={{ padding: '8px 16px', backgroundColor: '#f0f9ff', color: '#0369a1', border: 'none', borderRadius: '12px', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}>취소</button>
-                <button type="submit" style={{ padding: '8px 16px', backgroundColor: '#0284c7', color: 'white', border: 'none', borderRadius: '12px', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}>추가하기</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {selectedOrder && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50 }}>
-          <div style={{ backgroundColor: 'white', borderRadius: '16px', padding: '24px', width: '100%', maxWidth: '450px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', border: '1px solid #bae6fd', position: 'relative' }}>
-            <button onClick={() => setSelectedOrder(null)} style={{ position: 'absolute', top: '20px', right: '20px', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}>
-              <X size={20} />
-            </button>
-            <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#1e293b', marginTop: 0, marginBottom: '16px' }}>
-              {selectedOrder.buyer_name} {selectedOrder.nickname && `(${selectedOrder.nickname})`}
-            </h3>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '14px', color: '#475569' }}>
-              <div style={{ backgroundColor: '#f8fafc', padding: '12px', borderRadius: '12px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>주문 정보</div>
-                <div>날짜: {selectedOrder.date}</div>
-                <div>연락처: {selectedOrder.phone || '-'}</div>
-                <div>입금상태: <span style={{ fontWeight: 600, color: selectedOrder.payment_status === '입금' ? '#0369a1' : selectedOrder.payment_status === '주문취소' ? '#64748b' : '#e11d48' }}>{selectedOrder.payment_status}</span></div>
-                <div>배송상태: <span style={{ fontWeight: 600, color: selectedOrder.shipping_status === '발송' ? '#0284c7' : selectedOrder.shipping_status === '미발송' ? '#64748b' : '#d97706' }}>{selectedOrder.shipping_status}</span></div>
-              </div>
-
-              <div style={{ backgroundColor: '#f8fafc', padding: '12px', borderRadius: '12px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>상품 내역</div>
-                <div style={{ fontWeight: 500, color: '#1e293b' }}>{selectedOrder.products}</div>
-                {selectedOrder.keep_count > 0 && (
-                  <div style={{ fontSize: '12px', color: '#d97706' }}>킵 이월 내역: {selectedOrder.keep_date} 구매 · 킵 {selectedOrder.keep_count}건</div>
-                )}
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', backgroundColor: '#f0f9ff', borderRadius: '12px', border: '1px solid #bae6fd', fontWeight: 'bold', color: '#0369a1' }}>
-                <span>총 구매금액</span>
-                <span style={{ fontSize: '16px' }}>{(Number(selectedOrder.amount) || 0).toLocaleString()}원</span>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
-              <button onClick={() => setSelectedOrder(null)} style={{ padding: '8px 20px', backgroundColor: '#0284c7', color: 'white', border: 'none', borderRadius: '12px', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}>확인</button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
+                  <input
