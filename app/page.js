@@ -249,4 +249,30 @@ export default function NubidaMarket() {
                           >
                             <option value="입금">입금완료</option>
                             <option value="미입금">미입금</option>
-                            <option value="주문취소">주문취소</option
+                            <option value="주문취소">주문취소</option>
+                          </select>
+                        </td>
+
+                        {/* 배송상태 드롭다운 */}
+                        <td style={{ padding: '16px' }}>
+                          <select 
+                            value={order.shipping_status} 
+                            onChange={(e) => handleStatusChange(order.id, 'shipping_status', e.target.value)}
+                            style={{ 
+                              padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 600, border: '1px solid #bae6fd', 
+                              backgroundColor: order.shipping_status === '발송' ? '#e0f2fe' : order.shipping_status === '미발송' ? '#f1f5f9' : '#fef3c7', 
+                              color: order.shipping_status === '발송' ? '#0284c7' : order.shipping_status === '미발송' ? '#64748b' : '#d97706' 
+                            }}
+                          >
+                            <option value="발송">발송 (익일 자동)</option>
+                            <option value="킵">킵 (당일)</option>
+                            <option value="미발송">미발송</option>
+                          </select>
+                        </td>
+
+                        <td style={{ padding: '16px', textAlign: 'center' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                            <button 
+                              onClick={() => setSelectedOrder(order)} 
+                              title="상세보기"
+                              style={{ color: '#0284c7', background: '#
