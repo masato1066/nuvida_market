@@ -72,43 +72,52 @@ export default function NubidaMarket() {
     }
   };
 
-  const handleFileUpload = (e) => {
+  // 엑셀(.xlsx) 및 CSV 파일 모두 한글 깨짐 없이 안전하게 읽어오는 함수
+  const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-      try {
-        const text = evt.target.result;
-        const lines = text.split('\n').filter(Boolean);
-        
-        const newOrders = lines.slice(1).map((line, index) => {
-          const cols = line.split(',');
-          return {
-            id: Date.now() + index,
-            date: currentDate,
-            buyer_name: cols[0]?.trim() || '미확인',
-            nickname: cols[1]?.trim() || '',
-            phone: cols[2]?.trim() || '',
-            amount: Number(cols[3]?.replace(/[^0-9]/g, '')) || 0,
-            products: cols[4]?.trim() || '상품 정보 없음',
-            payment_status: '미입금',
-            shipping_status: '발송',
-          };
-        });
+    try {
+      const XLSX = await import('xlsx');
+      const reader = new FileReader();
 
-        if (newOrders.length > 0) {
-          setOrders((prev) => [...newOrders, ...prev]);
-          showToast(`파일 업로드 성공! (${newOrders.length}건 추가됨)`);
-        } else {
-          showToast('업로드된 파일에 데이터가 없습니다.');
+      reader.onload = (evt) => {
+        try {
+          const data = new Uint8Array(evt.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const sheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[sheetName];
+          const json = XLSX.utils.sheet_to_json(worksheet);
+
+          const formattedOrders = json.map((item, index) => ({
+            id: Date.now() + index,
+            date: item.date || currentDate,
+            buyer_name: item.buyer_name || item.구매자 || item.이름 || '미확인',
+            nickname: item.nickname || item.닉네임 || '',
+            phone: item.phone || item.연락처 || '',
+            amount: Number(item.amount || item.구매금액 || item.금액 || 0),
+            products: item.products || item.제품정보 || item.상품명 || '상품 정보 없음',
+            payment_status: item.payment_status || item.입금상태 || '미입금',
+            shipping_status: item.shipping_status || item.배송상태 || '발송',
+          }));
+
+          if (formattedOrders.length > 0) {
+            setOrders((prev) => [...formattedOrders, ...prev]);
+            showToast(`엑셀 업로드 성공! (${formattedOrders.length}건 추가됨)`);
+          } else {
+            showToast('업로드된 파일에 데이터가 없습니다.');
+          }
+        } catch (err) {
+          console.error(err);
+          showToast('엑셀 파일을 파싱하는 중 오류가 발생했습니다.');
         }
-      } catch (err) {
-        console.error(err);
-        showToast('파일을 읽는 중 오류가 발생했습니다.');
-      }
-    };
-    reader.readAsText(file);
+      };
+
+      reader.readAsArrayBuffer(file);
+    } catch (err) {
+      console.error(err);
+      showToast('엑셀 라이브러리를 로드하지 못했습니다.');
+    }
   };
 
   const handleDateChange = (days) => {
@@ -167,28 +176,28 @@ export default function NubidaMarket() {
             onClick={() => setCurrentTab('purchase')}
             style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', borderRadius: '12px', fontWeight: 500, fontSize: '14px', border: 'none', cursor: 'pointer', backgroundColor: currentTab === 'purchase' ? '#e0f2fe' : 'transparent', color: currentTab === 'purchase' ? '#0369a1' : '#475569', textAlign: 'left' }}
           >
-            <FileText size={18} /> 통합 구매관리
+            <FileText size={18} /> [통합 구매관리](https://vercel.com/masato19/nuvida-market-5rqr/logs)
           </button>
           <button 
             onClick={() => setCurrentTab('db')}
             style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', borderRadius: '12px', fontWeight: 500, fontSize: '14px', border: 'none', cursor: 'pointer', backgroundColor: currentTab === 'db' ? '#e0f2fe' : 'transparent', color: currentTab === 'db' ? '#0369a1' : '#475569', textAlign: 'left' }}
           >
-            <CheckCircle size={18} /> 고객정보 DB
+            <CheckCircle size={18} /> [고객정보 DB](https://vercel.com/masato19/nuvida-market-5rqr/logs)
           </button>
           <button 
             onClick={() => setCurrentTab('invoice')}
             style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', borderRadius: '12px', fontWeight: 500, fontSize: '14px', border: 'none', cursor: 'pointer', backgroundColor: currentTab === 'invoice' ? '#e0f2fe' : 'transparent', color: currentTab === 'invoice' ? '#0369a1' : '#475569', textAlign: 'left' }}
           >
-            <ImageIcon size={18} /> 송장 · 이미지
+            <ImageIcon size={18} /> [송장 · 이미지](https://vercel.com/masato19/nuvida-market-5rqr/logs)
           </button>
         </nav>
 
         <div style={{ padding: '16px', borderTop: '1px solid #f0f9ff', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <button onClick={fetchOrders} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '10px', backgroundColor: '#f0f9ff', color: '#0369a1', border: 'none', borderRadius: '12px', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}>
-            <RefreshCw size={16} /> 새로고침
+            <RefreshCw size={16} /> [새로고침](https://vercel.com/masato19/nuvida-market-5rqr/logs)
           </button>
           <button onClick={() => alert('로그아웃 되었습니다.')} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '10px', backgroundColor: 'transparent', color: '#f43f5e', border: 'none', borderRadius: '12px', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}>
-            <LogOut size={16} /> 로그아웃
+            <LogOut size={16} /> [로그아웃](https://vercel.com/masato19/nuvida-market-5rqr/logs)
           </button>
         </div>
       </aside>
@@ -239,11 +248,11 @@ export default function NubidaMarket() {
                 <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: '#1e293b', margin: 0 }}>통합 구매관리 리스트 ({orders.length}건)</h2>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <label style={{ padding: '8px 16px', backgroundColor: 'white', border: '1px solid #bae6fd', color: '#0369a1', borderRadius: '12px', fontSize: '14px', fontWeight: 500, cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }}>
-                    파일 업로드
-                    <input type="file" accept=".csv, .txt, .xlsx" style={{ display: 'none' }} onChange={handleFileUpload} />
+                    [엑셀 업로드](https://vercel.com/masato19/nuvida-market-5rqr/logs)
+                    <input type="file" accept=".xlsx, .xls, .csv" style={{ display: 'none' }} onChange={handleFileUpload} />
                   </label>
-                  <button style={{ padding: '8px 16px', backgroundColor: 'white', border: '1px solid #bae6fd', color: '#0369a1', borderRadius: '12px', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}>양식 다운로드</button>
-                  <button style={{ padding: '8px 16px', backgroundColor: 'white', border: '1px solid #bae6fd', color: '#0369a1', borderRadius: '12px', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}>리스트 다운로드</button>
+                  <button style={{ padding: '8px 16px', backgroundColor: 'white', border: '1px solid #bae6fd', color: '#0369a1', borderRadius: '12px', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}>[양식 다운로드](https://vercel.com/masato19/nuvida-market-5rqr/logs)</button>
+                  <button style={{ padding: '8px 16px', backgroundColor: 'white', border: '1px solid #bae6fd', color: '#0369a1', borderRadius: '12px', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}>[리스트 다운로드](https://vercel.com/masato19/nuvida-market-5rqr/logs)</button>
                 </div>
               </div>
 
