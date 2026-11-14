@@ -70,6 +70,39 @@ export default function NubidaMarket() {
     }
   };
 
+  // 💡 엑셀 업로드 함수 (SSR 충돌 방지를 위해 내부에서 await import 사용)
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      const XLSX = await import('xlsx');
+      
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        try {
+          const data = new Uint8Array(evt.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const sheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[sheetName];
+          const json = XLSX.utils.sheet_to_json(worksheet);
+          
+          console.log('업로드된 엑셀 데이터:', json);
+          showToast(`엑셀 업로드 성공! (${json.length}건)`);
+          
+          // 필요에 따라 파싱된 데이터를 orders 상태에 반영하는 로직을 여기에 추가할 수 있습니다.
+        } catch (err) {
+          console.error('엑셀 파싱 에러:', err);
+          showToast('엑셀 파일을 읽는 중 오류가 발생했습니다.');
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    } catch (err) {
+      console.error('xlsx 모듈 로드 에러:', err);
+      showToast('엑셀 라이브러리를 불러오지 못했습니다.');
+    }
+  };
+
   const handleDateChange = (days) => {
     const d = new Date(currentDate);
     d.setDate(d.getDate() + days);
@@ -113,6 +146,7 @@ export default function NubidaMarket() {
     setFormBuyer(''); setFormNickname(''); setFormPhone(''); setFormAmount(''); setFormProducts('');
     showToast('새 구매 건이 등록되었습니다.');
   };
+
   return (
     <div style={{ display: 'flex', height: '100vh', backgroundColor: '#F4F8FB', color: '#1e293b', fontFamily: 'sans-serif', overflow: 'hidden' }}>
       <aside style={{ width: '256px', backgroundColor: '#ffffff', borderRight: '1px solid #bae6fd', display: 'flex', flexDirection: 'column' }}>
@@ -199,7 +233,11 @@ export default function NubidaMarket() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: '#1e293b', margin: 0 }}>통합 구매관리 리스트 ({orders.length}건)</h2>
                 <div style={{ display: 'flex', gap: '8px' }}>
-                  <button style={{ padding: '8px 16px', backgroundColor: 'white', border: '1px solid #bae6fd', color: '#0369a1', borderRadius: '12px', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}>엑셀 업로드</button>
+                  {/* 엑셀 업로드 버튼 (파일 input 연결) */}
+                  <label style={{ padding: '8px 16px', backgroundColor: 'white', border: '1px solid #bae6fd', color: '#0369a1', borderRadius: '12px', fontSize: '14px', fontWeight: 500, cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }}>
+                    엑셀 업로드
+                    <input type="file" accept=".xlsx, .xls" style={{ display: 'none' }} onChange={handleFileUpload} />
+                  </label>
                   <button style={{ padding: '8px 16px', backgroundColor: 'white', border: '1px solid #bae6fd', color: '#0369a1', borderRadius: '12px', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}>양식 다운로드</button>
                 </div>
               </div>
@@ -296,7 +334,8 @@ export default function NubidaMarket() {
               </div>
             </div>
           )}
-{currentTab === 'db' && (
+
+          {currentTab === 'db' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: '#1e293b', margin: 0 }}>고객정보 DB 관리 (총 365명 연동됨)</h2>
