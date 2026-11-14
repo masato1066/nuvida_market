@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { 
-  Calendar, Search, Upload, Download, Plus, Trash2, RotateCcw, 
-  CheckCircle, Clock, FileText, Image as ImageIcon, LogOut, RefreshCw 
+  Calendar, Search, Plus, Trash2, 
+  CheckCircle, FileText, Image as ImageIcon, LogOut, RefreshCw 
 } from 'lucide-react';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -12,10 +12,9 @@ const supabase = (supabaseUrl && supabaseAnonKey) ? createClient(supabaseUrl, su
 
 export default function NubidaMarket() {
   const [currentTab, setCurrentTab] = useState('purchase'); // 'purchase' | 'db' | 'invoice'
-  const [currentDate, setCurrentDate] = useState('2026-11-14');
+  const [currentDate, setCurrentDate] = useState('2026-11-13');
   const [searchTerm, setSearchTerm] = useState('');
   const [orders, setOrders] = useState([]);
-  const [selectedIds, setSelectedIds] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
 
@@ -38,8 +37,8 @@ export default function NubidaMarket() {
   const fetchOrders = async () => {
     if (!supabase) {
       setOrders([
-        { id: 1, date: currentDate, buyer_name: '홍길동', nickname: '길동이', phone: '010-1234-5678', amount: 15000, products: '원피스 외 1개', payment_status: '입금', shipping_status: '발송', keep_date: null },
-        { id: 2, date: currentDate, buyer_name: '김영희', nickname: '영희짱', phone: '010-9876-5432', amount: 32000, products: '블라우스', payment_status: '미입금', shipping_status: '킵', keep_date: currentDate }
+        { id: 1, date: currentDate, buyer_name: '비룡(박병도)', nickname: '이월 1', phone: '010-1234-5678', amount: 10000, products: '20번 라코스테 뽀글이 블랙_100', payment_status: '입금', shipping_status: '발송', keep_date: null },
+        { id: 2, date: currentDate, buyer_name: '남미애', nickname: '이월 1', phone: '010-9876-5432', amount: 60000, products: '22번 톰브라운 니트티 버건디_L 외 2개', payment_status: '입금', shipping_status: '발송', keep_date: null }
       ]);
       return;
     }
@@ -103,11 +102,11 @@ export default function NubidaMarket() {
   };
 
   return (
-    <div className="flex h-screen bg-[#F0F5FA] text-slate-800 font-sans">
-      {/* 사이드바 */}
-      <aside className="w-64 bg-white border-r border-slate-200 flex flex-col shadow-sm">
-        <div className="p-6 border-b border-slate-100">
-          <h1 className="text-xl font-bold text-[#2563EB] flex items-center gap-2">
+    <div className="flex h-screen bg-[#F4F8FB] text-slate-800 font-sans">
+      {/* 사이드바 (파스텔 블루 톤 적용) */}
+      <aside className="w-64 bg-white border-r border-sky-100 flex flex-col shadow-xs">
+        <div className="p-6 border-b border-sky-50">
+          <h1 className="text-xl font-bold text-[#3B82F6] flex items-center gap-2">
             🛍️ 누비다마켓
           </h1>
           <p className="text-xs text-slate-400 mt-1">스마트 송장 및 주문 관리</p>
@@ -116,26 +115,26 @@ export default function NubidaMarket() {
         <nav className="flex-1 p-4 space-y-2">
           <button 
             onClick={() => setCurrentTab('purchase')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-colors ${currentTab === 'purchase' ? 'bg-[#E0F2FE] text-[#1D4ED8]' : 'text-slate-600 hover:bg-slate-50'}`}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-all ${currentTab === 'purchase' ? 'bg-[#E0F2FE] text-[#0284C7] shadow-xs' : 'text-slate-600 hover:bg-sky-50/50'}`}
           >
             <FileText size={18} /> 통합 구매관리
           </button>
           <button 
             onClick={() => setCurrentTab('db')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-colors ${currentTab === 'db' ? 'bg-[#E0F2FE] text-[#1D4ED8]' : 'text-slate-600 hover:bg-slate-50'}`}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-all ${currentTab === 'db' ? 'bg-[#E0F2FE] text-[#0284C7] shadow-xs' : 'text-slate-600 hover:bg-sky-50/50'}`}
           >
             <CheckCircle size={18} /> 고객정보 DB
           </button>
           <button 
             onClick={() => setCurrentTab('invoice')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-colors ${currentTab === 'invoice' ? 'bg-[#E0F2FE] text-[#1D4ED8]' : 'text-slate-600 hover:bg-slate-50'}`}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-all ${currentTab === 'invoice' ? 'bg-[#E0F2FE] text-[#0284C7] shadow-xs' : 'text-slate-600 hover:bg-sky-50/50'}`}
           >
             <ImageIcon size={18} /> 송장 · 이미지
           </button>
         </nav>
 
-        <div className="p-4 border-t border-slate-100 space-y-2">
-          <button onClick={fetchOrders} className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-sm font-medium transition-colors">
+        <div className="p-4 border-t border-sky-50 space-y-2">
+          <button onClick={fetchOrders} className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-sky-50 hover:bg-sky-100 text-sky-700 rounded-xl text-sm font-medium transition-colors">
             <RefreshCw size={16} /> 새로고침
           </button>
           <button onClick={() => alert('로그아웃 되었습니다.')} className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-rose-500 hover:bg-rose-50 rounded-xl text-sm font-medium transition-colors">
@@ -147,20 +146,20 @@ export default function NubidaMarket() {
       {/* 메인 콘텐츠 영역 */}
       <main className="flex-1 flex flex-col overflow-hidden">
         {toastMessage && (
-          <div className="absolute top-5 right-5 z-50 bg-[#2563EB] text-white px-5 py-3 rounded-xl shadow-lg font-medium text-sm animate-bounce">
+          <div className="absolute top-5 right-5 z-50 bg-[#0284C7] text-white px-5 py-3 rounded-xl shadow-lg font-medium text-sm animate-bounce">
             {toastMessage}
           </div>
         )}
 
         {/* 상단 헤더 */}
-        <header className="bg-white border-b border-slate-200 px-8 py-4 flex items-center justify-between shadow-sm">
+        <header className="bg-white border-b border-sky-100 px-8 py-4 flex items-center justify-between shadow-xs">
           <div className="flex items-center gap-4">
-            <div className="flex items-center bg-slate-100 rounded-xl p-1">
-              <button onClick={() => handleDateChange(-1)} className="px-3 py-1.5 text-slate-600 hover:bg-white rounded-lg text-sm font-bold transition-all">←</button>
+            <div className="flex items-center bg-sky-50/70 rounded-xl p-1 border border-sky-100">
+              <button onClick={() => handleDateChange(-1)} className="px-3 py-1.5 text-sky-700 hover:bg-white rounded-lg text-sm font-bold transition-all shadow-xs">←</button>
               <span className="px-4 font-semibold text-slate-700 text-sm">{currentDate}</span>
-              <button onClick={() => handleDateChange(1)} className="px-3 py-1.5 text-slate-600 hover:bg-white rounded-lg text-sm font-bold transition-all">→</button>
+              <button onClick={() => handleDateChange(1)} className="px-3 py-1.5 text-sky-700 hover:bg-white rounded-lg text-sm font-bold transition-all shadow-xs">→</button>
             </div>
-            <span className="text-xs text-amber-600 bg-amber-50 px-3 py-1.5 rounded-lg font-medium border border-amber-200">
+            <span className="text-xs text-sky-700 bg-sky-50 px-3 py-1.5 rounded-lg font-medium border border-sky-200">
               💡 킵(Keep) 안내: 전일 킵 건은 익일 자동 발송됩니다. (최대 1일)
             </span>
           </div>
@@ -173,12 +172,12 @@ export default function NubidaMarket() {
                 placeholder="구매자 이름 또는 닉네임 검색" 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-[#2563EB] w-64"
+                className="pl-9 pr-4 py-2 bg-sky-50/30 border border-sky-200 rounded-xl text-sm focus:outline-none focus:border-[#0284C7] w-64"
               />
             </div>
             <button 
               onClick={() => setIsModalOpen(true)}
-              className="flex items-center gap-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition-all"
+              className="flex items-center gap-2 bg-[#0284C7] hover:bg-[#0284C7]/90 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-xs transition-all"
             >
               <Plus size={16} /> 수동 구매 추가
             </button>
@@ -192,29 +191,29 @@ export default function NubidaMarket() {
               <div className="flex justify-between items-center">
                 <h2 className="text-lg font-bold text-slate-800">통합 구매관리 리스트 ({orders.length}건)</h2>
                 <div className="flex gap-2">
-                  <button className="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-xl text-sm font-medium shadow-xs">엑셀 업로드</button>
-                  <button className="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-xl text-sm font-medium shadow-xs">양식 다운로드</button>
+                  <button className="px-4 py-2 bg-white border border-sky-200 hover:bg-sky-50/50 text-sky-700 rounded-xl text-sm font-medium shadow-xs">엑셀 업로드</button>
+                  <button className="px-4 py-2 bg-white border border-sky-200 hover:bg-sky-50/50 text-sky-700 rounded-xl text-sm font-medium shadow-xs">양식 다운로드</button>
                 </div>
               </div>
 
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+              <div className="bg-white rounded-2xl border border-sky-100 shadow-xs overflow-hidden">
                 <table className="w-full text-left border-collapse text-sm">
                   <thead>
-                    <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-medium">
-                      <th className="p-4 w-12 text-center"><input type="checkbox" /></th>
+                    <tr className="bg-sky-50/60 border-b border-sky-100 text-slate-500 font-medium">
+                      <th className="p-4 w-12 text-center"><input type="checkbox" className="accent-sky-500" /></th>
                       <th className="p-4">구매자 (닉네임)</th>
                       <th className="p-4">연락처</th>
                       <th className="p-4">구매금액</th>
                       <th className="p-4">제품정보</th>
                       <th className="p-4">입금상태</th>
-                      <th className="p-4">배송상태</th>
+                      <th className="p-4">배송상태 (킵/발송)</th>
                       <th className="p-4 text-center">관리</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {orders.filter(o => o.buyer_name.includes(searchTerm) || o.nickname.includes(searchTerm)).map((order) => (
-                      <tr key={order.id} className="hover:bg-slate-50/80 transition-colors">
-                        <td className="p-4 text-center"><input type="checkbox" /></td>
+                  <tbody className="divide-y divide-sky-50">
+                    {orders.filter(o => o.buyer_name.includes(searchTerm) || (o.nickname && o.nickname.includes(searchTerm))).map((order) => (
+                      <tr key={order.id} className="hover:bg-sky-50/30 transition-colors">
+                        <td className="p-4 text-center"><input type="checkbox" className="accent-sky-500" /></td>
                         <td className="p-4 font-semibold text-slate-800">{order.buyer_name} <span className="text-slate-400 font-normal">({order.nickname})</span></td>
                         <td className="p-4 text-slate-600">{order.phone || '-'}</td>
                         <td className="p-4 font-medium text-slate-700">{order.amount.toLocaleString()}원</td>
@@ -223,7 +222,7 @@ export default function NubidaMarket() {
                           <select 
                             value={order.payment_status} 
                             onChange={(e) => handleStatusChange(order.id, 'payment_status', e.target.value)}
-                            className={`px-3 py-1 rounded-lg text-xs font-semibold border ${order.payment_status === '입금' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-rose-50 text-rose-600 border-rose-200'}`}
+                            className={`px-3 py-1 rounded-lg text-xs font-semibold border ${order.payment_status === '입금' ? 'bg-sky-50 text-sky-700 border-sky-200' : 'bg-rose-50 text-rose-600 border-rose-200'}`}
                           >
                             <option value="입금">입금완료</option>
                             <option value="미입금">미입금</option>
@@ -232,79 +231,19 @@ export default function NubidaMarket() {
                         <td className="p-4">
                           <select 
                             value={order.shipping_status} 
-                            onChange={(e) => handleStatusChange(order.id, 'shipping_status', e.target.value)}
-                            className={`px-3 py-1 rounded-lg text-xs font-semibold border ${order.shipping_status === '발송' ? 'bg-[#EFF6FF] text-[#2563EB] border-[#BFDBFE]' : 'bg-amber-50 text-amber-600 border-amber-200'}`}
+                            onChange={(e) => {
+                              const newStatus = e.target.value;
+                              // 킵 선택 시 당일 킵으로 설정 (익일 자동 발송 규칙 적용을 위한 상태값 분기)
+                              handleStatusChange(order.id, 'shipping_status', newStatus);
+                            }}
+                            className={`px-3 py-1 rounded-lg text-xs font-semibold border ${order.shipping_status === '발송' ? 'bg-sky-100 text-[#0284C7] border-sky-200' : 'bg-amber-50 text-amber-600 border-amber-200'}`}
                           >
                             <option value="발송">발송 (익일 자동)</option>
                             <option value="킵">킵 (당일)</option>
                           </select>
                         </td>
-                        <td className="p-4 text-center">
+                        <td className="p-4 text-center flex items-center justify-center gap-2">
+                          <button onClick={() => alert('상세보기')} className="text-sky-600 hover:text-sky-800 text-xs font-medium px-2 py-1 bg-sky-50 rounded-lg">상세</button>
                           <button onClick={() => {
                             setOrders(orders.filter(o => o.id !== order.id));
-                            showToast('삭제되었습니다.');
-                          }} className="text-slate-400 hover:text-rose-500 p-1">
-                            <Trash2 size={16} />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {currentTab === 'db' && (
-            <div className="space-y-4">
-              <h2 className="text-lg font-bold text-slate-800">고객정보 DB 관리</h2>
-              <p className="text-sm text-slate-500">등록된 고객들의 연락처 및 주소 정보를 통합 관리하는 공간입니다.</p>
-            </div>
-          )}
-
-          {currentTab === 'invoice' && (
-            <div className="space-y-4">
-              <h2 className="text-lg font-bold text-slate-800">송장 · 이미지 발급</h2>
-              <p className="text-sm text-slate-500">CJ대한통운 송장 엑셀 발급 및 고객별 전송 이미지를 관리합니다.</p>
-            </div>
-          )}
-        </div>
-      </main>
-
-      {/* 수동 구매 추가 모달 */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl border border-slate-100">
-            <h3 className="text-lg font-bold text-slate-800 mb-4">수동 구매 건 추가</h3>
-            <form onSubmit={handleAddOrder} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1">구매자 이름</label>
-                <input type="text" required value={formBuyer} onChange={e => setFormBuyer(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-[#2563EB]" placeholder="예: 홍길동" />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1">닉네임</label>
-                <input type="text" required value={formNickname} onChange={e => setFormNickname(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-[#2563EB]" placeholder="예: 길동이" />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1">연락처</label>
-                <input type="text" value={formPhone} onChange={e => setFormPhone(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-[#2563EB]" placeholder="010-0000-0000" />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1">구매금액</label>
-                <input type="number" value={formAmount} onChange={e => setFormAmount(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-[#2563EB]" placeholder="10000" />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1">제품정보</label>
-                <input type="text" value={formProducts} onChange={e => setFormProducts(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-[#2563EB]" placeholder="상품명 외 1개" />
-              </div>
-              <div className="flex justify-end gap-2 mt-6">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-sm font-medium">취소</button>
-                <button type="submit" className="px-4 py-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white rounded-xl text-sm font-medium">추가하기</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
+                            showToast('삭제되었습니다
