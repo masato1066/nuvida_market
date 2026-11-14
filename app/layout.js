@@ -1,4 +1,4 @@
-import './globals.css' // 👈 이 줄이 반드시 있어야 스타일이 적용됩니다!
+import './globals.css'
 
 export const metadata = {
   title: '누비다 마켓',
