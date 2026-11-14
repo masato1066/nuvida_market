@@ -170,4 +170,83 @@ export default function NubidaMarket() {
         <header style={{ backgroundColor: '#ffffff', borderBottom: '1px solid #bae6fd', padding: '16px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 1px 2px 0 rgba(0,0,0,0.05)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#f0f9ff', borderRadius: '12px', padding: '4px', border: '1px solid #bae6fd' }}>
-              <button onClick={() => handleDateChange(-1)} style={{ padding: '6px 12px', color: '#0369a1', backgroundColor: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '
+              <button onClick={() => handleDateChange(-1)} style={{ padding: '6px 12px', color: '#0369a1', backgroundColor: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 1px 2px 0 rgba(0,0,0,0.05)' }}>←</button>
+              <span style={{ padding: '0 16px', fontWeight: 600, color: '#334155', fontSize: '14px' }}>{currentDate}</span>
+              <button onClick={() => handleDateChange(1)} style={{ padding: '6px 12px', color: '#0369a1', backgroundColor: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 1px 2px 0 rgba(0,0,0,0.05)' }}>→</button>
+            </div>
+            <span style={{ fontSize: '12px', color: '#0369a1', backgroundColor: '#f0f9ff', padding: '8px 12px', borderRadius: '8px', fontWeight: 500, border: '1px solid #bae6fd' }}>
+              💡 킵(Keep) 안내: 전일 킵 건은 익일 자동 발송됩니다. (최대 1일)
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ position: 'relative' }}>
+              <Search style={{ position: 'absolute', left: '12px', top: '10px', color: '#94a3b8' }} size={16} />
+              <input 
+                type="text" 
+                placeholder="구매자 이름 또는 닉네임 검색" 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={{ paddingLeft: '36px', paddingRight: '16px', paddingTop: '8px', paddingBottom: '8px', backgroundColor: '#f8fafc', border: '1px solid #bae6fd', borderRadius: '12px', fontSize: '14px', outline: 'none', width: '256px' }}
+              />
+            </div>
+            <button 
+              onClick={() => setIsModalOpen(true)}
+              style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: '#0284c7', color: 'white', padding: '8px 16px', borderRadius: '12px', fontSize: '14px', fontWeight: 500, border: 'none', cursor: 'pointer' }}
+            >
+              <Plus size={16} /> 수동 구매 추가
+            </button>
+          </div>
+        </header>
+
+        {/* 컨텐츠 뷰 */}
+        <div style={{ flex: 1, padding: '32px', overflowY: 'auto' }}>
+          {currentTab === 'purchase' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: '#1e293b', margin: 0 }}>통합 구매관리 리스트 ({orders.length}건)</h2>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button style={{ padding: '8px 16px', backgroundColor: 'white', border: '1px solid #bae6fd', color: '#0369a1', borderRadius: '12px', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}>엑셀 업로드</button>
+                  <button style={{ padding: '8px 16px', backgroundColor: 'white', border: '1px solid #bae6fd', color: '#0369a1', borderRadius: '12px', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}>양식 다운로드</button>
+                </div>
+              </div>
+
+              <div style={{ backgroundColor: 'white', borderRadius: '16px', border: '1px solid #bae6fd', overflow: 'hidden', boxShadow: '0 1px 2px 0 rgba(0,0,0,0.05)' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px' }}>
+                  <thead>
+                    <tr style={{ backgroundColor: '#f0f9ff', borderBottom: '1px solid #bae6fd', color: '#64748b', fontWeight: 500 }}>
+                      <th style={{ padding: '16px', width: '48px', textAlign: 'center' }}><input type="checkbox" /></th>
+                      <th style={{ padding: '16px' }}>구매자 (닉네임)</th>
+                      <th style={{ padding: '16px' }}>연락처</th>
+                      <th style={{ padding: '16px' }}>구매금액</th>
+                      <th style={{ padding: '16px' }}>제품정보</th>
+                      <th style={{ padding: '16px' }}>입금상태</th>
+                      <th style={{ padding: '16px' }}>배송상태 (킵/발송)</th>
+                      <th style={{ padding: '16px', textAlign: 'center' }}>관리</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {orders.filter(o => o.buyer_name.includes(searchTerm) || (o.nickname && o.nickname.includes(searchTerm))).map((order) => (
+                      <tr key={order.id} style={{ borderBottom: '1px solid #f0f9ff' }}>
+                        <td style={{ padding: '16px', textAlign: 'center' }}><input type="checkbox" /></td>
+                        <td style={{ padding: '16px', fontWeight: 600, color: '#1e293b' }}>
+                          {order.buyer_name} {order.nickname && <span style={{ color: '#94a3b8', fontWeight: 'normal' }}>({order.nickname})</span>}
+                        </td>
+                        <td style={{ padding: '16px', color: '#475569' }}>{order.phone || '-'}</td>
+                        <td style={{ padding: '16px', fontWeight: 500, color: '#334155' }}>{order.amount.toLocaleString()}원</td>
+                        <td style={{ padding: '16px', color: '#475569' }}>{order.products}</td>
+                        
+                        {/* 입금상태 드롭다운 */}
+                        <td style={{ padding: '16px' }}>
+                          <select 
+                            value={order.payment_status} 
+                            onChange={(e) => handleStatusChange(order.id, 'payment_status', e.target.value)}
+                            style={{ 
+                              padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 600, border: '1px solid #bae6fd', 
+                              backgroundColor: order.payment_status === '입금' ? '#f0f9ff' : order.payment_status === '주문취소' ? '#f1f5f9' : '#fff1f2', 
+                              color: order.payment_status === '입금' ? '#0369a1' : order.payment_status === '주문취소' ? '#64748b' : '#e11d48' 
+                            }}
+                          >
+                            <option value="입금">입금완료</option>
+                            <option value="미입금">미입금</option>
+                            <option value="주문취소">주문취소</option
