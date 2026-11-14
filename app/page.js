@@ -37,7 +37,6 @@ export default function NubidaMarket() {
 
   const fetchOrders = async () => {
     if (!supabase) {
-      // Supabase 미설정 시 기본 가상 데이터
       setOrders([
         { id: 1, date: currentDate, buyer_name: '홍길동', nickname: '길동이', phone: '010-1234-5678', amount: 15000, products: '원피스 외 1개', payment_status: '입금', shipping_status: '발송', keep_date: null },
         { id: 2, date: currentDate, buyer_name: '김영희', nickname: '영희짱', phone: '010-9876-5432', amount: 32000, products: '블라우스', payment_status: '미입금', shipping_status: '킵', keep_date: currentDate }
@@ -59,7 +58,6 @@ export default function NubidaMarket() {
     }
   };
 
-  // 킵 규칙 적용: 전일(D-1) 킵된 건은 익일(D일)에 자동 발송 전환 로직 시뮬레이션
   const handleDateChange = (days) => {
     const d = new Date(currentDate);
     d.setDate(d.getDate() + days);
@@ -106,7 +104,7 @@ export default function NubidaMarket() {
 
   return (
     <div className="flex h-screen bg-[#F0F5FA] text-slate-800 font-sans">
-      {/* 사이드바 (파스텔 블루 포인트) */}
+      {/* 사이드바 */}
       <aside className="w-64 bg-white border-r border-slate-200 flex flex-col shadow-sm">
         <div className="p-6 border-b border-slate-100">
           <h1 className="text-xl font-bold text-[#2563EB] flex items-center gap-2">
@@ -148,20 +146,19 @@ export default function NubidaMarket() {
 
       {/* 메인 콘텐츠 영역 */}
       <main className="flex-1 flex flex-col overflow-hidden">
-        {/* 토스트 메시지 */}
         {toastMessage && (
           <div className="absolute top-5 right-5 z-50 bg-[#2563EB] text-white px-5 py-3 rounded-xl shadow-lg font-medium text-sm animate-bounce">
             {toastMessage}
           </div>
         )}
 
-        {/* 상단 헤더 (날짜 및 검색) */}
+        {/* 상단 헤더 */}
         <header className="bg-white border-b border-slate-200 px-8 py-4 flex items-center justify-between shadow-sm">
           <div className="flex items-center gap-4">
             <div className="flex items-center bg-slate-100 rounded-xl p-1">
-              <button onClick={() => handleDateChange(-1)} className="px-3 py-1.5 text-slate-600 hover:bg-white rounded-lg text-sm font-bold shadow-xs transition-all">←</button>
+              <button onClick={() => handleDateChange(-1)} className="px-3 py-1.5 text-slate-600 hover:bg-white rounded-lg text-sm font-bold transition-all">←</button>
               <span className="px-4 font-semibold text-slate-700 text-sm">{currentDate}</span>
-              <button onClick={() => handleDateChange(1)} className="px-3 py-1.5 text-slate-600 hover:bg-white rounded-lg text-sm font-bold shadow-xs transition-all">→</button>
+              <button onClick={() => handleDateChange(1)} className="px-3 py-1.5 text-slate-600 hover:bg-white rounded-lg text-sm font-bold transition-all">→</button>
             </div>
             <span className="text-xs text-amber-600 bg-amber-50 px-3 py-1.5 rounded-lg font-medium border border-amber-200">
               💡 킵(Keep) 안내: 전일 킵 건은 익일 자동 발송됩니다. (최대 1일)
@@ -200,7 +197,6 @@ export default function NubidaMarket() {
                 </div>
               </div>
 
-              {/* 테이블 */}
               <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
                 <table className="w-full text-left border-collapse text-sm">
                   <thead>
