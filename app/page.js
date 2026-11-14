@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { 
-  Search, Plus, Trash2, 
+  Search, Plus, Trash2, Edit3, Eye,
   CheckCircle, FileText, Image as ImageIcon, LogOut, RefreshCw 
 } from 'lucide-react';
 
@@ -239,12 +239,35 @@ export default function NubidaMarket() {
                           </select>
                         </td>
                         <td style={{ padding: '16px', textAlign: 'center' }}>
-                          <button onClick={() => {
-                            setOrders(orders.filter(o => o.id !== order.id));
-                            showToast('삭제되었습니다.');
-                          }} style={{ color: '#94a3b8', background: 'none', border: 'none', cursor: 'pointer' }}>
-                            <Trash2 size={16} />
-                          </button>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                            {/* 상세보기 버튼 */}
+                            <button 
+                              onClick={() => showToast(`[상세보기] ${order.buyer_name}님의 주문 정보`)} 
+                              title="상세보기"
+                              style={{ color: '#0284c7', background: '#f0f9ff', border: '1px solid #bae6fd', padding: '6px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                            >
+                              <Eye size={14} />
+                            </button>
+                            {/* 편집 버튼 */}
+                            <button 
+                              onClick={() => showToast(`[편집] ${order.buyer_name}님 주문 편집 모드`)} 
+                              title="편집"
+                              style={{ color: '#0369a1', background: '#e0f2fe', border: '1px solid #bae6fd', padding: '6px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                            >
+                              <Edit3 size={14} />
+                            </button>
+                            {/* 삭제 버튼 */}
+                            <button 
+                              onClick={() => {
+                                setOrders(orders.filter(o => o.id !== order.id));
+                                showToast('삭제되었습니다.');
+                              }} 
+                              title="삭제"
+                              style={{ color: '#f43f5e', background: '#fff1f2', border: '1px solid #fecdd3', padding: '6px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -272,7 +295,7 @@ export default function NubidaMarket() {
 
       {/* 수동 구매 추가 모달 */}
       {isModalOpen && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50 }}>
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.4)', display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'center', zIndex: 50 }}>
           <div style={{ backgroundColor: 'white', borderRadius: '16px', padding: '24px', width: '100%', maxWidth: '400px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', border: '1px solid #bae6fd' }}>
             <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#1e293b', marginTop: 0, marginBottom: '16px' }}>수동 구매 건 추가</h3>
             <form onSubmit={handleAddOrder} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
