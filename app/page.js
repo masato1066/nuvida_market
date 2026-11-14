@@ -152,7 +152,7 @@ export default function NubidaMarket() {
         )}
 
         {/* 상단 헤더 */}
-        <header style={{ backgroundColor: '#ffffff', borderBottom: '1px solid #bae6fd', padding: '16px 32px', display: 'flex', alignItems: 'center', justifyContent: 'between', boxShadow: '0 1px 2px 0 rgba(0,0,0,0.05)' }}>
+        <header style={{ backgroundColor: '#ffffff', borderBottom: '1px solid #bae6fd', padding: '16px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 1px 2px 0 rgba(0,0,0,0.05)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#f0f9ff', borderRadius: '12px', padding: '4px', border: '1px solid #bae6fd' }}>
               <button onClick={() => handleDateChange(-1)} style={{ padding: '6px 12px', color: '#0369a1', backgroundColor: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 1px 2px 0 rgba(0,0,0,0.05)' }}>←</button>
@@ -177,7 +177,7 @@ export default function NubidaMarket() {
             </div>
             <button 
               onClick={() => setIsModalOpen(true)}
-              style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: '#0284c7', hover: { backgroundColor: '#0369a1' }, color: 'white', padding: '8px 16px', borderRadius: '12px', fontSize: '14px', fontWeight: 500, border: 'none', cursor: 'pointer' }}
+              style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: '#0284c7', color: 'white', padding: '8px 16px', borderRadius: '12px', fontSize: '14px', fontWeight: 500, border: 'none', cursor: 'pointer' }}
             >
               <Plus size={16} /> 수동 구매 추가
             </button>
@@ -297,4 +297,13 @@ export default function NubidaMarket() {
                 <input type="text" value={formProducts} onChange={e => setFormProducts(e.target.value)} style={{ width: '100%', padding: '8px 12px', border: '1px solid #bae6fd', borderRadius: '12px', fontSize: '14px', outline: 'none' }} placeholder="상품명 외 1개" />
               </div>
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '16px' }}>
-                <button type="button" onClick={() => setIsModalOpen(false)} style={{ padding: '8px 16px', backgroundColor: '#f0f9ff', color: '#0369a1', border: 'none', borderRadius: '12px', fontSize: '14px', fontWeight: 500, cursor: '
+                <button type="button" onClick={() => setIsModalOpen(false)} style={{ padding: '8px 16px', backgroundColor: '#f0f9ff', color: '#0369a1', border: 'none', borderRadius: '12px', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}>취소</button>
+                <button type="submit" style={{ padding: '8px 16px', backgroundColor: '#0284c7', color: 'white', border: 'none', borderRadius: '12px', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}>추가하기</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
