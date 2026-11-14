@@ -19,6 +19,7 @@ const INITIAL_CUSTOMERS = [
 ];
 
 export default function NubidaMarket() {
+  const [isMounted, setIsMounted] = useState(false);
   const [currentTab, setCurrentTab] = useState('purchase');
   const [currentDate, setCurrentDate] = useState('2026-11-13');
   const [searchTerm, setSearchTerm] = useState('');
@@ -37,6 +38,7 @@ export default function NubidaMarket() {
   const [formProducts, setFormProducts] = useState('');
 
   useEffect(() => {
+    setIsMounted(true);
     fetchOrders();
   }, [currentDate]);
 
@@ -154,6 +156,12 @@ export default function NubidaMarket() {
     setFormBuyer(''); setFormNickname(''); setFormPhone(''); setFormAmount(''); setFormProducts('');
     showToast('새 구매 건이 등록되었습니다.');
   };
+
+  // 서버 렌더링 시점과 클라이언트 마운트 시점의 불일치를 막기 위한 안전 장치
+  if (!isMounted) {
+    return <div style={{ padding: '40px', textAlign: 'center', color: '#0284c7' }}>로딩 중...</div>;
+  }
+
   return (
     <div style={{ display: 'flex', height: '100vh', backgroundColor: '#F4F8FB', color: '#1e293b', fontFamily: 'sans-serif', overflow: 'hidden' }}>
       <aside style={{ width: '256px', backgroundColor: '#ffffff', borderRight: '1px solid #bae6fd', display: 'flex', flexDirection: 'column' }}>
