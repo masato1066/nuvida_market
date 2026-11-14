@@ -69,7 +69,7 @@ export default function NubidaMarket() {
     }
   };
 
-  // 💡 엑셀 업로드 및 화면 데이터 자동 반영 로직
+  // 💡 엑셀 업로드 함수 (동적 임포트로 Vercel SSR 에러 방지)
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -86,7 +86,6 @@ export default function NubidaMarket() {
           const worksheet = workbook.Sheets[sheetName];
           const json = XLSX.utils.sheet_to_json(worksheet);
           
-          // 엑셀 데이터를 앱의 주문 포맷에 맞게 변환하여 리스트에 반영
           const formattedOrders = json.map((item, index) => ({
             id: Date.now() + index,
             date: item.date || currentDate,
@@ -237,4 +236,15 @@ export default function NubidaMarket() {
           </div>
         </header>
 
-        <div style={{ flex: 1, padding:
+        <div style={{ flex: 1, padding: '32px', overflowY: 'auto' }}>
+          {currentTab === 'purchase' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: '#1e293b', margin: 0 }}>통합 구매관리 리스트 ({orders.length}건)</h2>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <label style={{ padding: '8px 16px', backgroundColor: 'white', border: '1px solid #bae6fd', color: '#0369a1', borderRadius: '12px', fontSize: '14px', fontWeight: 500, cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }}>
+                    엑셀 업로드
+                    <input type="file" accept=".xlsx, .xls" style={{ display: 'none' }} onChange={handleFileUpload} />
+                  </label>
+                  <button style={{ padding: '8px 16px', backgroundColor: 'white', border: '1px solid #bae6fd', color: '#0369a1', borderRadius: '12px', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}>양식 다운로드</button>
+                </div>
